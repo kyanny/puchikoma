@@ -1,0 +1,48 @@
+#!/bin/bash -xe
+
+if [ "$GITHUB_USER" == "" ]; then
+    echo '$GITHUB_USER is not set.'
+    exit 1
+fi
+
+if [ "$GITHUB_REPO" == "" ]; then
+    echo '$GITHUB_REPO is not set.'
+    exit 1
+fi
+
+if [ "$GITHUB_ACCESS_TOKEN" == "" ]; then
+    echo '$GITHUB_ACCESS_TOKEN is not set.'
+    exit 1
+fi
+
+if [ "$BRANCH_NAME" == "" ]; then
+    echo '$BRANCH_NAME is not set.'
+    exit 1
+fi
+
+if [ "$PULL_REQUEST_TITLE" == "" ]; then
+    echo '$PULL_REQUEST_TITLE is not set.'
+    exit 1
+fi
+
+function pull_request() {
+    curl -i -s -X POST -H "Authorization: token $GITHUB_ACCESS_TOKEN" -d "{\"title\":\"$PULL_REQUEST_TITLE\", \"head\":\"$BRANCH_NAME\", \"base\":\"master\"}" https://api.github.com/repos/$GITHUB_USER/$GITHUB_REPO/pulls | grep ^Location | awk '{print $2}' | sed -e 's/api\.//' -e 's/\/repos//' -e 's/pulls/pull/'
+}
+
+function run() {
+    remote=`git ls-remote --heads 2>/dev/null | grep $BRANCH_NAME || echo -n`
+    if [ -n "$remote" ]; then
+        git checkout -b $BRANCH_NAME origin/$BRANCH_NAME
+    else
+        git checkout -b $BRANCH_NAME
+    fi
+    
+    main
+
+    if [ -n "$remote" ]; then
+        git push origin $BRANCH_NAME
+    else
+        git push origin $BRANCH_NAME
+        pull_request
+    fi
+}
