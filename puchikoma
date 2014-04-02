@@ -26,8 +26,7 @@ if [ "$PULL_REQUEST_TITLE" == "" ]; then
 fi
 
 HEADER="Authorization: token $GITHUB_ACCESS_TOKEN"
-#PAYLOAD="{\"title\":\"$PULL_REQUEST_TITLE\", \"head\":\"$BRANCH_NAME\", \"base\":\"master\"}"
-PAYLOAD=$(printf '{"title":"%s", "head":"%s", "base":"master"}' $PULL_REQUEST_TITLE $BRANCH_NAME)
+PAYLOAD="{\"title\":\"$PULL_REQUEST_TITLE\", \"head\":\"$BRANCH_NAME\", \"base\":\"master\"}"
 GITHUB_API_URL=https://api.github.com/repos/$GITHUB_USER/$GITHUB_REPO/pulls
 
 function run() {
