@@ -25,6 +25,10 @@ if [ "$PULL_REQUEST_TITLE" == "" ]; then
     exit 1
 fi
 
+HEADER="Authorization: token $GITHUB_ACCESS_TOKEN"
+PAYLOAD="{\"title\":\"$PULL_REQUEST_TITLE\", \"head\":\"$BRANCH_NAME\", \"base\":\"master\"}"
+GITHUB_API_URL=https://api.github.com/repos/$GITHUB_USER/$GITHUB_REPO/pulls
+
 function run() {
     remote=`git ls-remote --heads 2>/dev/null | grep $BRANCH_NAME || echo -n`
     if [ -n "$remote" ]; then
@@ -39,6 +43,6 @@ function run() {
         git push origin $BRANCH_NAME
     else
         git push origin $BRANCH_NAME
-        curl -i -s -X POST -H "Authorization: token $GITHUB_ACCESS_TOKEN" -d "{\"title\":\"$PULL_REQUEST_TITLE\", \"head\":\"$BRANCH_NAME\", \"base\":\"master\"}" https://api.github.com/repos/$GITHUB_USER/$GITHUB_REPO/pulls | grep ^Location | awk '{print $2}' | sed -e 's/api\.//' -e 's/\/repos//' -e 's/pulls/pull/'
+        curl -i -s -X POST -H $HEADER -d $PAYLOAD $GITHUB_API_URL | grep ^Location | awk '{print $2}' | sed -e 's/api\.//' -e 's/\/repos//' -e 's/pulls/pull/'
     fi
 }
