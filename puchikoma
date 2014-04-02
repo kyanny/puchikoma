@@ -35,10 +35,14 @@ function run() {
     
     main
 
-    if [ -n "$remote" ]; then
-        git push origin $BRANCH_NAME
+    if [ -n "`git diff --name-only`" ]; then
+        if [ -n "$remote" ]; then
+            git push origin $BRANCH_NAME
+        else
+            git push origin $BRANCH_NAME
+            curl -i -s -X POST -H "Authorization: token $GITHUB_ACCESS_TOKEN" -d "{\"title\":\"$PULL_REQUEST_TITLE\", \"head\":\"$BRANCH_NAME\", \"base\":\"master\"}" https://api.github.com/repos/$GITHUB_USER/$GITHUB_REPO/pulls | grep ^Location | awk '{print $2}' | sed -e 's/api\.//' -e 's/\/repos//' -e 's/pulls/pull/'
+        fi
     else
-        git push origin $BRANCH_NAME
-        curl -i -s -X POST -H "Authorization: token $GITHUB_ACCESS_TOKEN" -d "{\"title\":\"$PULL_REQUEST_TITLE\", \"head\":\"$BRANCH_NAME\", \"base\":\"master\"}" https://api.github.com/repos/$GITHUB_USER/$GITHUB_REPO/pulls | grep ^Location | awk '{print $2}' | sed -e 's/api\.//' -e 's/\/repos//' -e 's/pulls/pull/'
+        echo "no changed file."
     fi
 }
